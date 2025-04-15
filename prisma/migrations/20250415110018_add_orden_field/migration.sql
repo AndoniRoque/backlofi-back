@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Game" ADD COLUMN     "orden" INTEGER NOT NULL DEFAULT 999;

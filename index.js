@@ -1,8 +1,9 @@
-require("dotenv").config();
+import "dotenv/config";
+import gameCatalogRoutes from "./routes/gameCatalog.routes.js";
 
-const express = require("express");
-const cors = require("cors");
-const { default: axios } = require("axios");
+import express from "express";
+import cors from "cors";
+import axios from "axios";
 
 const app = express();
 
@@ -84,6 +85,8 @@ app.get("/items", (req, res) => {
   res.json(items);
 });
 
+app.use("/games", gameCatalogRoutes);
+
 app.get("/search", async (req, res) => {
   const { name } = req.query;
   console.log(name);
@@ -100,7 +103,6 @@ app.get("/artworks", async (req, res) => {
   if (!id) return res.status(400).json({ error: "falta el parámetro 'id'" });
 
   const artworks = await fetchArtwork(id);
-  console.log(">>>>>>>>>>>>>>", artworks);
   res.json(artworks);
 });
 
@@ -110,7 +112,7 @@ app.post("/items", (req, res) => {
   res.status(201).json(newItem);
 });
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
