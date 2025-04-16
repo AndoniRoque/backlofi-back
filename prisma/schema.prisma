@@ -18,7 +18,7 @@ model Game {
   id         Int        @id @default(autoincrement())
   igdbId     Int        @unique
   title      String
-  imageUrl   String?
+  artworks   Int[]
   synopsis   String?
   playStatus PlayStatus @default(BACKLOG)
   orden      Int        @default(999)

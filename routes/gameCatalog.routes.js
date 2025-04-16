@@ -51,13 +51,13 @@ router.post("/", async (req, res) => {
   const { newGame } = req.body;
   const title = newGame.name;
   const synopsis = newGame.summary;
-  const imageUrl = newGame.artworks;
+  const artworks = newGame.artworks;
   const igdbId = newGame.igdbId;
   const orden = newGame.order;
 
   console.log(newGame);
 
-  if (!title || !synopsis || !imageUrl || !igdbId) {
+  if (!title || !synopsis || !artworks || !igdbId) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
@@ -66,7 +66,7 @@ router.post("/", async (req, res) => {
       data: {
         title,
         synopsis,
-        imageUrl,
+        artworks,
         igdbId,
         orden,
       },
