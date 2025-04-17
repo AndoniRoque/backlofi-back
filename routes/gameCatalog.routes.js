@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { prisma } from "../db.mjs";
-import { PlayStatus } from "@prisma/client";
+import pkg from "@prisma/client";
+const { PlayStatus } = pkg;
 
 const router = Router();
 
@@ -12,7 +13,13 @@ router.get("/", async (req, res) => {
       },
       orderBy: { orden: "asc" },
     });
-    res.json(games);
+
+    const gamesWithImageUrl = games.map((game) => ({
+      ...game,
+      imageUrl: null,
+    }));
+
+    res.json(gamesWithImageUrl);
   } catch (error) {
     console.error("Error fetching games:", error);
     res.status(500).json({ error: "Internal server error" });
