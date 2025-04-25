@@ -1,12 +1,13 @@
 import "dotenv/config";
 import gameCatalogRoutes from "./routes/gameCatalog.routes.js";
-
 import express from "express";
 import cors from "cors";
 import axios from "axios";
+import NodeCache from "node-cache";
+
+const myCache = new NodeCache({ stdTTL: 3600, checkperiod: 120 });
 
 const app = express();
-
 app.use(express.json());
 app.use(cors());
 
@@ -46,6 +47,14 @@ const getAccessToken = async () => {
 })();
 
 const fetchFromIGDB = async (query) => {
+  const cacheKey = `igdb_query_${query}`;
+
+  const cachedData = myCache.get(cacheKey);
+  if (cacheData) {
+    console.log("Usando datos en caché para:", query);
+    return cachedData;
+  }
+
   try {
     const response = await axios.post(BASE_URL, query, {
       headers: {
@@ -54,6 +63,8 @@ const fetchFromIGDB = async (query) => {
         "Content-Type": "text/plain",
       },
     });
+
+    myCache.set(cacheKey, response.data);
     return response.data;
   } catch (error) {
     console.error("Error en la consulta a IGDB", error.response.data);
@@ -62,6 +73,14 @@ const fetchFromIGDB = async (query) => {
 };
 
 const fetchArtwork = async (id) => {
+  const cacheKey = `igdb_artwork_${id}`;
+
+  const cachedData = myCache.get(cacheKey);
+  if (cachedData) {
+    console.log("Usando artwork en caché para ID:", id);
+    return cachedData;
+  }
+
   try {
     const response = await axios.post(
       ARTWORK_URL,
@@ -74,6 +93,7 @@ const fetchArtwork = async (id) => {
         },
       }
     );
+    myCache.set(cacheKey, response.data);
     return response.data;
   } catch (error) {
     console.error("Error en la consulta a IGDB", error.response.data);
@@ -110,6 +130,22 @@ app.post("/items", (req, res) => {
   const newItem = { id: items.length + 1, ...req.body };
   items.push(newItem);
   res.status(201).json(newItem);
+});
+
+app.post("/clear-cache", (req, res) => {
+  const keys = myCache.keys();
+  if (req.body.key) {
+    // Limpiar una clave específica
+    myCache.del(req.body.key);
+    res.json({ message: `Caché para clave ${req.body.key} borrado` });
+  } else {
+    // Limpiar todo el caché
+    myCache.flushAll();
+    res.json({
+      message: "Caché borrado completamente",
+      keysDeleted: keys.length,
+    });
+  }
 });
 
 const PORT = process.env.PORT || 3002;
