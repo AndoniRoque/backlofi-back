@@ -38,7 +38,7 @@ router.get("/current", async (req, res) => {
       return res.status(404).json({ error: "Current game not found" });
     }
     res.status(200).json(currentGame);
-  } catch (err) {
+  } catch (error) {
     console.error("Error fetching current game:", error);
     res.status(500).json({ error: "Internal server error" });
   }
