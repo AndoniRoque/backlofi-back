@@ -33,7 +33,7 @@ const getAccessToken = async () => {
           client_secret: SECRET,
           grant_type: "client_credentials",
         },
-      }
+      },
     );
     ACCESS_TOKEN = response.data.access_token;
   } catch (error) {
@@ -91,7 +91,7 @@ const fetchArtwork = async (id) => {
           Authorization: `Bearer ${ACCESS_TOKEN}`,
           "Content-Type": "text/plain",
         },
-      }
+      },
     );
     myCache.set(cacheKey, response.data);
     return response.data;
@@ -113,7 +113,7 @@ app.get("/search", async (req, res) => {
   if (!name)
     return res.status(400).json({ error: "falta el parámetro 'title'" });
 
-  const query = `search "${name}"; fields summary, name, artworks; limit 20;`;
+  const query = `search "${name}"; fields summary, name, artworks, cover.url, first_release_date; limit 20;`;
   const games = await fetchFromIGDB(query);
   res.json(games);
 });
