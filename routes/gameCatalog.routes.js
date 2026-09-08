@@ -94,6 +94,47 @@ router.put("/revert", async (req, res) => {
   }
 });
 
+router.put("/undo-finish", async (req, res) => {
+  try {
+    await prisma.$transaction(async (tx) => {
+      const currentGame = await tx.game.findFirst({
+        where: { playStatus: PlayStatus.PLAYING },
+      });
+      const lastFinishedGame = await tx.game.findFirst({
+        where: { playStatus: PlayStatus.COMPLETED },
+        orderBy: { updatedAt: "desc" },
+      });
+
+      if (!currentGame || !lastFinishedGame) {
+        throw new Error("No finished game available to undo");
+      }
+
+      await tx.game.updateMany({
+        where: {
+          playStatus: PlayStatus.BACKLOG,
+          orden: { gte: 2 },
+        },
+        data: { orden: { increment: 1 } },
+      });
+
+      await tx.game.update({
+        where: { id: currentGame.id },
+        data: { playStatus: PlayStatus.BACKLOG, orden: 2 },
+      });
+
+      await tx.game.update({
+        where: { id: lastFinishedGame.id },
+        data: { playStatus: PlayStatus.PLAYING, orden: 1 },
+      });
+    });
+
+    res.status(200).json({ message: "Last finished game restored" });
+  } catch (error) {
+    console.error("Error undoing finished game:", error);
+    res.status(400).json({ error: error.message || "Could not undo finish" });
+  }
+});
+
 router.get("/total", async (req, res) => {
   try {
     const total = await prisma.game.count();
@@ -126,8 +167,8 @@ router.put("/reorder", async (req, res) => {
           tx.game.update({
             where: { id: game.id },
             data: { orden: game.order },
-          })
-        )
+          }),
+        ),
       );
 
       // 2. Establecer PLAYING al nuevo orden 1
