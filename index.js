@@ -50,7 +50,7 @@ const fetchFromIGDB = async (query) => {
   const cacheKey = `igdb_query_${query}`;
 
   const cachedData = myCache.get(cacheKey);
-  if (cacheData) {
+  if (cachedData) {
     console.log("Usando datos en caché para:", query);
     return cachedData;
   }

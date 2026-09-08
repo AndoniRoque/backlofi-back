@@ -44,6 +44,56 @@ router.get("/current", async (req, res) => {
   }
 });
 
+router.put("/revert", async (req, res) => {
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 1. Encontrar el juego actual (PLAYING)
+      const currentGame = await tx.game.findFirst({
+        where: { playStatus: PlayStatus.PLAYING },
+      });
+
+      if (!currentGame) {
+        throw new Error("No current game found");
+      }
+
+      // 2. Encontrar el primer juego del backlog (orden 2)
+      const firstBacklogGame = await tx.game.findFirst({
+        where: {
+          playStatus: PlayStatus.BACKLOG,
+          orden: 2,
+        },
+      });
+
+      if (!firstBacklogGame) {
+        throw new Error("No backlog game found");
+      }
+
+      // 3. Cambiar el juego actual a BACKLOG con orden 2
+      await tx.game.update({
+        where: { id: currentGame.id },
+        data: {
+          playStatus: PlayStatus.BACKLOG,
+          orden: 2,
+        },
+      });
+
+      // 4. Cambiar el primer juego del backlog a PLAYING con orden 1
+      await tx.game.update({
+        where: { id: firstBacklogGame.id },
+        data: {
+          playStatus: PlayStatus.PLAYING,
+          orden: 1,
+        },
+      });
+    });
+
+    res.status(200).json({ message: "Game reverted successfully" });
+  } catch (error) {
+    console.error("Error reverting game:", error);
+    res.status(500).json({ error: error.message || "Internal server error" });
+  }
+});
+
 router.get("/total", async (req, res) => {
   try {
     const total = await prisma.game.count();
