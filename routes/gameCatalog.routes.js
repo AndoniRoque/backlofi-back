@@ -279,6 +279,11 @@ router.post("/", async (req, res) => {
   }
 
   try {
+    const existingGame = await prisma.game.findUnique({ where: { igdbId } });
+    if (existingGame) {
+      return res.status(409).json({ error: "Game already exists" });
+    }
+
     const newGame = await prisma.game.create({
       data: {
         title,

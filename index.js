@@ -113,7 +113,7 @@ app.get("/search", async (req, res) => {
   if (!name)
     return res.status(400).json({ error: "falta el parámetro 'title'" });
 
-  const query = `search "${name}"; fields summary, name, artworks, cover.url, first_release_date; limit 20;`;
+  const query = `search "${name}"; fields summary, name, artworks, cover.url, first_release_date, genres.name, platforms.name; limit 20;`;
   const games = await fetchFromIGDB(query);
   res.json(games);
 });
